@@ -136,6 +136,20 @@ export default function App() {
     setTodos(todos.map(t => ({ ...t, completed: true })));
   };
 
+  const handleExportTodos = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(todos, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `todo_backup_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  const handleImportTodos = (importedTodos) => {
+    setTodos(importedTodos);
+  };
+
   // Filter & Sort Logic
   const filteredTodos = todos.filter(todo => {
     // Search query
@@ -208,6 +222,8 @@ export default function App() {
           todos={todos}
           onClearCompleted={handleClearCompleted}
           onCompleteAll={handleCompleteAll}
+          onExportTodos={handleExportTodos}
+          onImportTodos={handleImportTodos}
         />
 
         <div className="grid-monolith">

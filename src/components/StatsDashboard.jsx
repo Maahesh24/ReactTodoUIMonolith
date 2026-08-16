@@ -1,7 +1,29 @@
-import React from 'react';
-import { CheckCircle2, Clock, AlertCircle, ListTodo, Flame, Trash2, CheckCheck } from 'lucide-react';
+import React, { useRef } from 'react';
+import { CheckCircle2, Clock, AlertCircle, ListTodo, Flame, Trash2, CheckCheck, Download, Upload } from 'lucide-react';
 
-export default function StatsDashboard({ todos, onClearCompleted, onCompleteAll }) {
+export default function StatsDashboard({ todos, onClearCompleted, onCompleteAll, onExportTodos, onImportTodos }) {
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedData = JSON.parse(event.target.result);
+        if (Array.isArray(importedData)) {
+          onImportTodos(importedData);
+        } else {
+          alert('Invalid backup format. Expected an array of tasks.');
+        }
+      } catch (err) {
+        alert('Failed to parse JSON file.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const total = todos.length;
   const completed = todos.filter(t => t.completed).length;
   const pending = total - completed;
@@ -23,7 +45,32 @@ export default function StatsDashboard({ todos, onClearCompleted, onCompleteAll 
           <Flame size={20} style={{ color: '#f59e0b' }} /> Performance Dashboard
         </h3>
         
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={onExportTodos}
+            className="btn-secondary"
+            style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
+            title="Export tasks to JSON backup"
+          >
+            <Download size={14} /> Export
+          </button>
+
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="btn-secondary"
+            style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
+            title="Import tasks from JSON backup"
+          >
+            <Upload size={14} /> Import
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".json"
+            style={{ display: 'none' }}
+          />
+
           <button 
             onClick={onCompleteAll} 
             disabled={pending === 0}
